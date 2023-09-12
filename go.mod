@@ -1,6 +1,6 @@
-module logging
+module github.com/A-pen-app/logging
 
-go 1.21.1
+go 1.20
 
 require (
 	github.com/blendle/zapdriver v1.3.1
