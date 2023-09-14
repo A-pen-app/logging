@@ -16,7 +16,6 @@ import (
 
 // Static configuration variables initalized at runtime.
 var logLevel Level
-var cloudLoggingEnabled bool
 var projectID string
 var keyRequestID, keyUserID, keyError, keyScope string
 
@@ -60,6 +59,15 @@ func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency ti
 		zapdriver.HTTP(payload),
 		zapdriver.Label(keyRequestID, requestID),
 	)
+	userID, ok := ctx.Value(keyUserID).(string)
+	if ok {
+		fields = append(fields, zapdriver.Label(keyUserID, userID))
+	}
+
+	scope, ok := ctx.Value(keyScope).(string)
+	if ok {
+		fields = append(fields, zapdriver.Label(keyScope, scope))
+	}
 	zlogger.Info("request log", fields...)
 }
 
@@ -121,6 +129,9 @@ func parseLabels(args []interface{}) []zapcore.Field {
 }
 
 func zlog(ctx context.Context, level Level, format string, args []interface{}, keysAndValues []interface{}) {
+	if level <= LevelFirst || level >= LevelLast || level > logLevel {
+		return
+	}
 	msg := fmt.Sprintf(format, args...)
 	requestID := trace.SpanContextFromContext(ctx).TraceID().String()
 	spanID := trace.SpanContextFromContext(ctx).SpanID().String()
