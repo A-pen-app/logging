@@ -24,13 +24,26 @@ var zlogger *zap.Logger
 // Initialize initializes the logger module.
 func Initialize(c *Config) {
 
+	var err error
+	if c == nil {
+		logLevel = LevelDebug
+		keyRequestID = "request_id"
+		keyUserID = "user_id"
+		keyError = "err"
+		keyScope = "scope"
+		zlogger, err = zap.NewDevelopment()
+		if err != nil {
+			panic(err)
+		}
+		return
+	}
+
 	logLevel = c.Level
 	projectID = c.ProjectID
 	keyRequestID = c.KeyRequestID
 	keyUserID = c.KeyUserID
 	keyError = c.KeyError
 	keyScope = c.KeyScope
-	var err error
 	if c.Development {
 		zlogger, err = zapdriver.NewDevelopment()
 	} else {
@@ -55,10 +68,13 @@ func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency ti
 	spanID := trace.SpanContextFromContext(ctx).SpanID().String()
 	payload := zapdriver.NewHTTP(req, res)
 	payload.Latency = latency.String()
-	fields := append(zapdriver.TraceContext(requestID, spanID, true, projectID),
+	fields := []zapcore.Field{
 		zapdriver.HTTP(payload),
 		zapdriver.Label(keyRequestID, requestID),
-	)
+	}
+	if projectID != "" {
+		fields = append(fields, zapdriver.TraceContext(requestID, spanID, true, projectID)...)
+	}
 	userID, ok := ctx.Value(keyUserID).(string)
 	if ok {
 		fields = append(fields, zapdriver.Label(keyUserID, userID))
@@ -136,10 +152,13 @@ func zlog(ctx context.Context, level Level, format string, args []interface{}, k
 	requestID := trace.SpanContextFromContext(ctx).TraceID().String()
 	spanID := trace.SpanContextFromContext(ctx).SpanID().String()
 
-	fields := append(zapdriver.TraceContext(requestID, spanID, true, projectID),
+	fields := []zapcore.Field{
 		zapdriver.Label(keyRequestID, requestID),
 		zapdriver.SourceLocation(runtime.Caller(2)),
-	)
+	}
+	if projectID != "" {
+		fields = append(fields, zapdriver.TraceContext(requestID, spanID, true, projectID)...)
+	}
 
 	userID, ok := ctx.Value(keyUserID).(string)
 	if ok {
