@@ -15,9 +15,12 @@ import (
 )
 
 // Static configuration variables initalized at runtime.
-var logLevel Level
+var logLevel = LevelDebug
 var projectID string
-var keyRequestID, keyUserID, keyError, keyScope string
+var keyRequestID = "request_id"
+var keyUserID = "user_id"
+var keyError = "err"
+var keyScope = "scope"
 
 var zlogger *zap.Logger
 
@@ -25,28 +28,20 @@ var zlogger *zap.Logger
 func Initialize(c *Config) {
 
 	var err error
-	if c == nil {
-		logLevel = LevelDebug
-		keyRequestID = "request_id"
-		keyUserID = "user_id"
-		keyError = "err"
-		keyScope = "scope"
+
+	if c != nil {
+		logLevel = c.Level
+		projectID = c.ProjectID
+		keyRequestID = c.KeyRequestID
+		keyUserID = c.KeyUserID
+		keyError = c.KeyError
+		keyScope = c.KeyScope
+	}
+	if projectID == "" {
 		config := zap.NewDevelopmentConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		zlogger, err = config.Build(zap.AddStacktrace(zap.ErrorLevel))
-		if err != nil {
-			panic(err)
-		}
-		return
-	}
-
-	logLevel = c.Level
-	projectID = c.ProjectID
-	keyRequestID = c.KeyRequestID
-	keyUserID = c.KeyUserID
-	keyError = c.KeyError
-	keyScope = c.KeyScope
-	if c.Development {
+	} else if c.Development {
 		zlogger, err = zapdriver.NewDevelopment()
 	} else {
 		zlogger, err = zapdriver.NewProduction()
