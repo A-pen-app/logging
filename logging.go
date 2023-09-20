@@ -31,7 +31,9 @@ func Initialize(c *Config) {
 		keyUserID = "user_id"
 		keyError = "err"
 		keyScope = "scope"
-		zlogger, err = zap.NewDevelopment()
+		config := zap.NewDevelopmentConfig()
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		zlogger, err = config.Build(zap.AddStacktrace(zap.ErrorLevel))
 		if err != nil {
 			panic(err)
 		}
