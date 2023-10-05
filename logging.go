@@ -21,11 +21,12 @@ var keyRequestID = "request_id"
 var keyUserID = "user_id"
 var keyError = "err"
 var keyScope = "scope"
+var keyRemoteIP = "remote_ip"
 
 var zlogger *zap.Logger
 
 // Initialize initializes the logger module.
-func Initialize(c *Config) {
+func Initialize(c *Config) error {
 
 	var err error
 
@@ -47,8 +48,9 @@ func Initialize(c *Config) {
 		zlogger, err = zapdriver.NewProduction()
 	}
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
 // Finalize finalizes the logging module.
@@ -68,6 +70,7 @@ func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency ti
 	fields := []zapcore.Field{
 		zapdriver.HTTP(payload),
 		zapdriver.Label(keyRequestID, requestID),
+		zapdriver.Label(keyRemoteIP, req.Header.Get("true-client-ip")),
 	}
 	if projectID != "" {
 		fields = append(fields, zapdriver.TraceContext(requestID, spanID, true, projectID)...)
@@ -81,6 +84,7 @@ func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency ti
 	if ok {
 		fields = append(fields, zapdriver.Label(keyScope, scope))
 	}
+
 	zlogger.Info("request log", fields...)
 }
 

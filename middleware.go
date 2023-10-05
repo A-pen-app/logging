@@ -2,12 +2,11 @@ package logging
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
-var requestLogExcludes map[string]struct{}
 
 // RequestLogger provides a gin middleware to log HTTP requests
 func RequestLogger(excludes []string) gin.HandlerFunc {
@@ -23,6 +22,15 @@ func RequestLogger(excludes []string) gin.HandlerFunc {
 		if _, exists := requestLogExcludes[url]; exists {
 			return
 		}
+		forwardChain := strings.Split(ctx.GetHeader("X-Forwarded-For"), ",")
+		remoteIP := ""
+		if len(forwardChain) > 0 && forwardChain[0] != "" {
+			remoteIP = forwardChain[0]
+		} else {
+			remoteIP = strings.Split(ctx.Request.RemoteAddr, ":")[0]
+		}
+		ctx.Request.Header.Add("x-forwarded-for", remoteIP)
+		ctx.Request.Header.Add("true-client-ip", remoteIP)
 		start := time.Now()
 		ctx.Next()
 		duration := time.Since(start)
