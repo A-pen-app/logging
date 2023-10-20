@@ -137,6 +137,8 @@ func parseLabels(args []interface{}) []zapcore.Field {
 			default:
 				if valStr, ok := val.(string); ok {
 					fields = append(fields, zapdriver.Label(keyStr, valStr))
+				} else if valPtr, ok := val.(*string); ok && valPtr != nil {
+					fields = append(fields, zapdriver.Label(keyStr, *valPtr))
 				}
 			}
 		}
