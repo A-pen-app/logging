@@ -113,6 +113,11 @@ func Info(ctx context.Context, format string, args ...interface{}) {
 	zlog(ctx, LevelInfo, format, args, nil)
 }
 
+// Infow logs a message with additional context
+func Infow(ctx context.Context, msg string, keysAndValues ...interface{}) {
+	zlog(ctx, LevelInfo, msg, nil, keysAndValues)
+}
+
 // Debug logs a message of debugging severity.
 func Debug(ctx context.Context, format string, args ...interface{}) {
 	zlog(ctx, LevelDebug, format, args, nil)
