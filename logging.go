@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/blendle/zapdriver"
@@ -140,10 +141,19 @@ func parseLabels(args []interface{}) []zapcore.Field {
 					fields = append(fields, zapdriver.Label(keyError, err.Error()))
 				}
 			default:
-				if valStr, ok := val.(string); ok {
-					fields = append(fields, zapdriver.Label(keyStr, valStr))
-				} else if valPtr, ok := val.(*string); ok && valPtr != nil {
-					fields = append(fields, zapdriver.Label(keyStr, *valPtr))
+				switch v := val.(type) {
+				case string:
+					fields = append(fields, zapdriver.Label(keyStr, v))
+				case *string:
+					if v != nil {
+						fields = append(fields, zapdriver.Label(keyStr, *v))
+					}
+				case int:
+					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(v)))
+				case int32:
+					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(int(v))))
+				case int64:
+					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(int(v))))
 				}
 			}
 		}
