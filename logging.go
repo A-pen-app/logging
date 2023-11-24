@@ -154,6 +154,8 @@ func parseLabels(args []interface{}) []zapcore.Field {
 					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(int(v))))
 				case int64:
 					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(int(v))))
+				default:
+					fields = append(fields, zapdriver.Label(keyStr, fmt.Sprintf("%+v", v)))
 				}
 			}
 		}
