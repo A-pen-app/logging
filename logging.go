@@ -148,6 +148,12 @@ func parseLabels(args []interface{}) []zapcore.Field {
 					if v != nil {
 						fields = append(fields, zapdriver.Label(keyStr, *v))
 					}
+				case []byte:
+					fields = append(fields, zapdriver.Label(keyStr, string(v)))
+				case *[]byte:
+					if v != nil {
+						fields = append(fields, zapdriver.Label(keyStr, string(*v)))
+					}
 				case int:
 					fields = append(fields, zapdriver.Label(keyStr, strconv.Itoa(v)))
 				case int32:
