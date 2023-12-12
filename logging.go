@@ -23,6 +23,7 @@ var keyUserID = "user_id"
 var keyError = "err"
 var keyScope = "scope"
 var keyRemoteIP = "remote_ip"
+var keyRoute = "route"
 
 var zlogger *zap.Logger
 
@@ -63,7 +64,7 @@ func Finalize() {
 }
 
 // HTTP is a helper function for logging API request/response
-func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency time.Duration) {
+func HTTP(ctx context.Context, req *http.Request, res *http.Response, path string, latency time.Duration) {
 	requestID := trace.SpanContextFromContext(ctx).TraceID().String()
 	spanID := trace.SpanContextFromContext(ctx).SpanID().String()
 	payload := zapdriver.NewHTTP(req, res)
@@ -72,6 +73,7 @@ func HTTP(ctx context.Context, req *http.Request, res *http.Response, latency ti
 		zapdriver.HTTP(payload),
 		zapdriver.Label(keyRequestID, requestID),
 		zapdriver.Label(keyRemoteIP, req.Header.Get("true-client-ip")),
+		zapdriver.Label(keyRoute, path),
 	}
 	if projectID != "" {
 		fields = append(fields, zapdriver.TraceContext(requestID, spanID, true, projectID)...)

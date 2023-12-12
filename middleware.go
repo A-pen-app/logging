@@ -39,6 +39,7 @@ func RequestLogger(excludes []string) gin.HandlerFunc {
 			&http.Response{
 				StatusCode: ctx.Writer.Status(),
 			},
+			ctx.FullPath(),
 			duration,
 		)
 
